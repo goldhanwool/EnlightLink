@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+openai==0.28
+pymongo
+odmantic
+motor
+chromadb
+uuid
