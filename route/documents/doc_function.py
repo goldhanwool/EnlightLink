@@ -13,10 +13,9 @@ import os
 from langchain.chat_models import ChatOpenAI
 import openai
 
-# .env 파일 불러오기
+
 load_dotenv()
 
-# 예를 들어, .env 파일에 있는 환경 변수를 사용하기
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 openai.api_key = OPENAI_API_KEY
