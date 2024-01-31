@@ -17,8 +17,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-openai_key = os.getenv('OPENAI_API_KEY')
-
 
 @app.get("/")
 def root():
