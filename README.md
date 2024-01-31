@@ -8,6 +8,7 @@ LLM(ChatGPT) + ChromaDB + FastApi
 
 
 ## Setup
+- .env : OpenAI_API_Key, Mongo_DB_Admin_Name, Mongo_DB_Admin_Password, Mongo_DB_Database_Name  
 - python version : Python 3.10
 - install Library
 ```
@@ -17,4 +18,6 @@ LLM(ChatGPT) + ChromaDB + FastApi
 ```
  python main.py
 ```
+
+
 
