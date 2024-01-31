@@ -10,11 +10,11 @@ LLM(ChatGPT) + ChromaDB + FastApi
 ## Setup
 - python version : Python 3.10
 - install Library
-'''
+```
  pip install -r requirements.txt
-'''
+```
 - server start
-'''
+```
  python main.py
-'''
+```
 
