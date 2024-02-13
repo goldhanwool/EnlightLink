@@ -1,77 +1,77 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Body, Request
 from . import doc_crud, doc_schema
 # from model import Vectors
-from db import get_db
+from db import get_mongo_db
 from pydantic import BaseModel, Field
 from typing import List
 from . import doc_crud, doc_schema, doc_function
+from main import AdvancedConversationBufferMemory
+from db import redis
+import uuid
+import pickle
 
 router = APIRouter(
     tags=["LLM"],
     prefix="/api/llm",
 )
 
-
+# 파일 업로드 및 레디스 ID
 @router.post("/upload")
 def upload(
-    question: str = Body(..., title="질의", example="What is the capital of France?"), 
     file: UploadFile = File(..., title="파일"),
-    db=Depends(get_db)) -> str:    
+    db=Depends(get_mongo_db)
+    ) -> dict:    
     
     file_path = doc_function.save_file(file)
-    print('image_path: ', file_path)
+    print('\n[file_path]: ', file_path)
 
-    msg = doc_function.make_embedding(file_path, file.filename, question=question)
-    return msg.content.replace('"', '')
+    vectordb_path = doc_function.set_chromadb(file_path)
+    if not vectordb_path:
+        raise HTTPException(status_code=400, detail="파일 업로드 실패")
     
+    memory = AdvancedConversationBufferMemory()
+    serialized_conversation = pickle.dumps(memory)
 
-
-@router.get("/get_my_ip")
-async def get_my_ip(request: Request):
-    # X-Forwarded-For 헤더를 우선적으로 확인
-    x_forwarded_for = request.headers.get("x-forwarded-for")
-    if x_forwarded_for:
-        # X-Forwarded-For 헤더가 존재하면, 첫 번째 IP 주소를 사용자의 IP로 간주
-        client_ip = x_forwarded_for.split(",")[0]
-    else:
-        # X-Forwarded-For 헤더가 없으면 request.client.host를 사용
-        client_ip = request.client.host
-    return {"Client IP": client_ip}
+    session_id = str(uuid.uuid1())
+    redis.set(session_id, serialized_conversation, ex=3600)
+   
+    return { 
+        "session_id": session_id,
+        "vectordb_path": vectordb_path 
+    }
 
 
 @router.post("/answer")
 def answer(
     question: str = Body(None, title="질의", example="What is the capital of France?"), 
-    file_id: str = Body(None, title="파일 ID", example="7e18690c-c5e8-11ee-83ff-18c04d9774fa"),
-    db=Depends(get_db)) -> str:    
+    vectordb_path: str = Body(None, title="파일 ID", example="7e18690c-c5e8-11ee-83ff-18c04d9774fa"),
+    session_id: str = Body(None, title="세션 ID", example="7e18690c-c5e8-11ee-83ff-18c04d9774fa"),
+    db=Depends(get_mongo_db)) -> dict:    
 
-    #question을 임베딩
-    get_ = doc_function.question_embedding(question, file_id, db)
+    print('\n***API ENDPOINT*** - [answer] > data: ', question, vectordb_path)
+    db = doc_crud.chromadb.get_chromadb(vectordb_path)
+    res = doc_function.question_embedding(question, session_id, db)
+
+    return res 
+
+
+
+# @router.post("/uploads")
+# def upload__(
+#     question: str = Body(None, title="질의", example="What is the capital of France?"), 
+#     file: UploadFile = File(..., title="파일"),
+#     db=Depends(get_db)
+#     ) -> list:    
+
+#     file_path = doc_function.save_file(file)
+
+#     embedding_vector_ls, file_id  = doc_function.make_embedding_and_save_mongodb(file_path, file.filename)
+
+#     vector_id = []
+#     for embedding_vector in embedding_vector_ls:
+#         _id = doc_crud.add_vectors(embedding_vector, file_id, db)
+#         print("\n+-------------_id----------------+")
+#         vector_id.append(str(_id.inserted_id))
     
-    print("\n+-------------question_embedding_obj----------------+")
-    print(get_)
-
-    #코사인 유사도가 가장 높은 문서의 내용을 반환 
-    
-    return get_
-
-
-@router.post("/uploads")
-def upload__(
-    question: str = Body(None, title="질의", example="What is the capital of France?"), 
-    file: UploadFile = File(..., title="파일"),
-    db=Depends(get_db)
-    ) -> list:    
-
-    file_path = doc_function.save_file(file)
-
-    embedding_vector_ls, file_id  = doc_function.make_embedding_and_save_mongodb(file_path, file.filename)
-
-    vector_id = []
-    for embedding_vector in embedding_vector_ls:
-        _id = doc_crud.add_vectors(embedding_vector, file_id, db)
-        print("\n+-------------_id----------------+")
-        vector_id.append(str(_id.inserted_id))
-    
-    return vector_id
+#     return vector_id
 
