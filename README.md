@@ -4,7 +4,7 @@ LLM(ChatGPT) + React + FastApi + ChromaDB + MongoDB
 ![Alt text](server/upload/sample2.png)
 
 ## Structure
-![Alt text](server/upload/sample3.png)
+![Alt text](server/upload/sample03.png)
 
 <br/>
 - 파일 업로드 (Upload File): 
