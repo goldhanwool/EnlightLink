@@ -4,10 +4,13 @@ LLM(ChatGPT) + React + FastApi + ChromaDB + MongoDB
 ![Alt text](server/upload/sample2.png)
 
 ## Structure
-- 파일 업로드 (Upload File)
+![Alt text](server/upload/sample3.png)
+
+<br/>
+- 파일 업로드 (Upload File): 
 사용자가 파일을 시스템에 업로드합니다.
 
-- 데이터베이스 저장 (Save_Chromadb)
+- 데이터베이스 저장 (Save_Chromadb): 
 업로드된 파일은 FileLoader를 통해 처리되며, 파일 내용이 분리(splitter)되어 임베딩(embeddings) 프로세스를 거친 후 데이터베이스에 저장(save db)됩니다.
 
 - Redis 저장 (Save_Redis): 
@@ -25,13 +28,11 @@ LLM(ChatGPT) + React + FastApi + ChromaDB + MongoDB
 - GPT 쿼리 (query_GPT): 
 검색된 정보를 바탕으로 GPT(Generative Pre-trained Transformer) 모델을 쿼리하여 사용자의 질문에 대한 답변을 생성합니다.
 
--Redis 저장 (Save_Redis): 
+- Redis 저장 (Save_Redis): 
 생성된 메시지는 다시 Redis에 저장되며, saveMessage 함수를 통해 이루어집니다.
 
--MongoDB 저장 (Save_MongoDB): 
+- MongoDB 저장 (Save_MongoDB): 
 마지막으로, 메시지는 MongoDB에도 저장되며, 이 역시 saveMessage 함수를 사용합니다
-
-![Alt text](server/upload/sample3.png)
 
 
 ## Code Discription
@@ -41,7 +42,7 @@ FastAPI for Language Model (LLM) Operations
 This API provides endpoints for uploading documents, embedding questions, and retrieving answers based on the content of the uploaded documents. It leverages FastAPI for efficient request handling and integrates with MongoDB for storing document vectors and metadata.
 
 ## Memory
--ConversationMemory와 redis를 이용한 대화관리
+-ConversationMemory와 redis를 이용한 대화관리<br/>
 ![Alt text](server/upload/sample4.png)
 
 
