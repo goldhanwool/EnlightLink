@@ -1,5 +1,5 @@
 # Documant LangChain Project
-LLM(ChatGPT) + React + FastApi + ChromaDB + MongoDB
+LLM(ChatGPT) + React + FastApi + ChromaDB + Redis + MongoDB
 
 ![Alt text](server/upload/sample2.png)
 
