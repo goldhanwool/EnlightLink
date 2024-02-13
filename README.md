@@ -47,7 +47,7 @@ This API provides endpoints for uploading documents, embedding questions, and re
 
 
 ## Setup
-- .env : OpenAI_API_Key, Mongo_DB_Admin_Name, Mongo_DB_Admin_Password, Mongo_DB_Database_Name  
+- .env : OpenAI_API_Key, Mongo_DB_Admin_Name, Mongo_DB_Admin_Password, Mongo_DB_Database_Name, REDIS_ENDPOINT, REDIS_PORT, REDIS_PASSWORD   
 - python version : Python 3.10
 - install Library
 ```
