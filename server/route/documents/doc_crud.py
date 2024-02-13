@@ -1,5 +1,21 @@
-from db import get_db
 from typing import List
+from langchain.vectorstores import Chroma
+from langchain.embeddings import CacheBackedEmbeddings, OpenAIEmbeddings
+
+
+class ChromaDbManager:
+    def __init__(self):
+        self.embedding_model = OpenAIEmbeddings()
+        self.db = None
+    
+    def get_chromadb(self, path: str):
+        self.db = Chroma(
+            persist_directory=path,
+            embedding_function=self.embedding_model
+        )
+        return self.db
+
+chromadb = ChromaDbManager()
 
 def add_vectors(data: List[float], db):
     # 텍스트 받아서 벡터화
