@@ -42,7 +42,7 @@ openai.api_key = OPENAI_API_KEY
 llm = ChatOpenAI(
     openai_api_key=OPENAI_API_KEY,
     temperature=0.1,
-    max_tokens=500,
+    max_tokens=300,
     # callback=[
     #     StreamingStdOutCallbackHandler(),
     # ]
@@ -81,16 +81,15 @@ template = ChatPromptTemplate.from_messages([ # if not list [] -> TypeError: fro
 
 
 system_template = """
-You are a world-renowned konean scholar in artificial intelligence and a professor specializing in AI. Based on the given text, please explain the answer to the question.
-Please refer to the previous message and reply.
-Generate an answer to the question based on the given text.
-Generate an answer to the question based on general knowledge, not the given text.
-Please answer in these two ways.
+    You are a world-renowned konean scholar in artificial intelligence and a professor specializing in AI. Based on the given text, please explain the answer to the question.
+    Please refer to the previous message and reply.
+    Generate an answer to the question based on the given text.
+    Generate an answer to the question based on general knowledge, not the given text.
 
-    Previous  Message: {previous_message} 
-    Context: {context}
+        Previous  Message: {previous_message} 
+        Context: {context}
 
-if answer english, translate it to korea language
+    if answer english, translate it to korea language
 
 """
 
@@ -113,6 +112,21 @@ chat_prompt = ChatPromptTemplate.from_messages([
 ])
 
 openai_embeddings = OpenAIEmbeddings()
+
+
+def conversationBufferMemory():
+    from langchain.memory import ConversationBufferMemory
+    from langchain.chains import ConversationChain
+    from langchain.chat_models import ChatOpenAI
+
+    #memory = ConversationBufferMemory()
+    memory = {''}
+
+    conversation = ConversationChain(
+        llm=llm,
+        memory=memory,
+        verbose=True
+    )
 
 
 def set_chromadb(file_path):
@@ -215,37 +229,49 @@ def get_redis_memory_obj(session_id):
     serialized_conversation = redis.get(session_id)
     if not serialized_conversation:
         raise HTTPException(status_code=404, detail="Session not found")
-    print("\n+-------------get_conversation_obj_from_redis----------------+")
+    
     conversation_obj = pickle.loads(serialized_conversation)
-
     #memory_obj = AdvancedConversationBufferMemory.deserialize(conversation.chat_memory.messages)
-    print(conversation_obj)
+
+    print("conversation_obj: ", type(conversation_obj))
     return conversation_obj
+
+
+def get_token(text):
+    # BERT 모델을 위한 토크나이저 로드
+    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+    print("\n+-------------get_token----------------+")
+    # 토크나이징 예제
+    message_token_cnt = tokenizer(text)
+    return len(message_token_cnt)
 
 
 def question_embedding(question, session_id, db):
     print("\n+-------------Question Embedding Start----------------+")
     retriever = db.as_retriever()
     
-    print("\n+-------------doc-question retriever----------------+")
     # 문서
     results = retriever.get_relevant_documents(question)
     context = ''
+    context_cnt = 0
     for text in results:
         context += '\n\n' + text.page_content
 
     # 전체 토큰 확인 및 제한
-    print("\n+-------------previous message----------------+")
     memory = get_redis_memory_obj(session_id) #memory 객체 반환
-    message_token_cnt = get_token(question)
+
+    # message_token_cnt = get_token(question)
+    # context_token_cnt = get_token(context)
+    message_token_cnt = len(question.split())
+    context_token_cnt = len(context.split())
 
     #GPT에 보내기 전 해당 토큰의 개수를 확인 제한 -> 메모리 할당된 chat 토큰 수 확인
-    memory.calculate_token(len(memory.buffer), message_token_cnt, memory)
+    memory.calculate_token(len(memory.buffer), message_token_cnt+context_token_cnt, memory)
 
-    # 메모리 토큰 가져오기. 
     previous_message = ''
     for msg_obj in memory.chat_memory.messages:
         previous_message += '\n' + msg_obj.content
+
 
     prompt = chat_prompt.format_prompt(
         previous_message=str(previous_message),
@@ -255,7 +281,6 @@ def question_embedding(question, session_id, db):
 
     answer = llm(prompt)
 
-    print("\n+-------------save_answer_memory----------------+")
     # 전체 토큰 확인 및 ai 답변 저장
     human_input = {
         "content": question,
@@ -274,104 +299,4 @@ def question_embedding(question, session_id, db):
     return {
         'answer': answer.content
     }
-
-
-def get_token(text):
-    from transformers import BertTokenizer
-
-    # BERT 모델을 위한 토크나이저 로드
-    tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-
-    # 토크나이저를 사용하여 텍스트를 토큰화하고 토큰 수를 계산
-    message_token_cnt = tokenizer(text)
-    return len(message_token_cnt)
-
-
-def embedding_mongodb(file_path, file_name, question):
-    # print("\n+-------------make_embedding Start----------------+")
-    file_id = uuid.uuid1().__str__()
-    splitter = CharacterTextSplitter(
-        separator="\n",
-        chunk_size=3000,
-        chunk_overlap=100,
-    )
-
-    loader = UnstructuredFileLoader(file_path)
-    docs = loader.load_and_split(text_splitter=splitter)
-
-
-    """
-    data.__dict__
-
-        {
-            'page_content': '...text.....', 
-            'metadata': 
-                {
-                    'source': 'upload/Screenshot from 2024-02-07 11-58-53.pngd8b81efc-4298-4762-ac52-275330a47ea3'
-                }, 
-            'type': 'Document'
-        }
-    
-    """
-    # #https://python.langchain.com/docs/integrations/text_embedding/openai
-    embeddings = OpenAIEmbeddings(model="text-embedding-3-large")
-    
-    cnt = 0
-    embedding_ls = []
-    for doc in docs:
-        cnt += 1
-        db_data = {}
-
-        db_data["embedding"] = embeddings.embed_documents([doc.page_content])
-        db_data["text"] = doc.page_content
-        db_data["metadata"] = doc.metadata
-        db_data["type"] = doc.type
-        db_data["page"] = cnt
-        db_data["file_id"] = file_id
-
-        embedding_ls.append(db_data)
-
-    print("\n+-------------embedding_ls----------------+")
-
-    return embedding_ls, file_id
-
-def mongodb_search_doc(doc):
-    
-    from sentence_transformers import SentenceTransformer, util
-    import numpy as np
-
-    # 모델 초기화 (여기서는 범용적으로 사용되는 'all-MiniLM-L6-v2' 모델을 사용합니다)
-    model = SentenceTransformer('all-MiniLM-L6-v2')
-    
-    query = "what is react mean?"
-    
-    #텍스트와 질문 임베딩 생성
-    #HuggingFace에서 제공하는 모델을 사용하여 문장을 벡터로 변환
-    question_embedding = model.encode(query)
-
-    from db import collection
-
-    results = collection.aggregate([
-        {
-            "$vectorSearch": {
-                "queryVector": question_embedding,
-                "path": "embeddings",
-                "numCandidates": 100,
-                "limit": 4,
-                "index": "default"
-            }
-        }
-    ]);
-    print("\n+-------------results----------------+")
-    for i in results:
-        print("\ni:", i)
-
-    return results
-
-
-
-
-
-
-
 

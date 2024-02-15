@@ -9,18 +9,18 @@ from main import AdvancedConversationBufferMemory
 from db import redis
 import uuid
 import pickle
+import json
 
 router = APIRouter(
     tags=["LLM"],
     prefix="/api/llm",
 )
 
-# 파일 업로드 및 레디스 ID
 @router.post("/upload")
 def upload(
     file: UploadFile = File(..., title="파일"),
     db=Depends(get_mongo_db)
-    ) -> dict:    
+    ):    
     
     file_path = doc_function.save_file(file)
     print('\n[file_path]: ', file_path)
@@ -34,11 +34,11 @@ def upload(
 
     session_id = str(uuid.uuid1())
     redis.set(session_id, serialized_conversation, ex=3600)
-   
-    return { 
+    res = { 
         "session_id": session_id,
         "vectordb_path": vectordb_path 
     }
+    return json.dumps(res)
 
 
 @router.post("/answer")
@@ -53,25 +53,4 @@ def answer(
     res = doc_function.question_embedding(question, session_id, db)
 
     return res 
-
-
-
-# @router.post("/uploads")
-# def upload__(
-#     question: str = Body(None, title="질의", example="What is the capital of France?"), 
-#     file: UploadFile = File(..., title="파일"),
-#     db=Depends(get_db)
-#     ) -> list:    
-
-#     file_path = doc_function.save_file(file)
-
-#     embedding_vector_ls, file_id  = doc_function.make_embedding_and_save_mongodb(file_path, file.filename)
-
-#     vector_id = []
-#     for embedding_vector in embedding_vector_ls:
-#         _id = doc_crud.add_vectors(embedding_vector, file_id, db)
-#         print("\n+-------------_id----------------+")
-#         vector_id.append(str(_id.inserted_id))
-    
-#     return vector_id
 
