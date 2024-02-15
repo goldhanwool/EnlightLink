@@ -2,6 +2,8 @@
 LLM(ChatGPT) + React + FastApi + ChromaDB + Redis + MongoDB
 
 ![Alt text](server/upload/sample05.png)
+![Alt text](server/upload/sample06.png)
+![Alt text](server/upload/sample07.png)
 
 # System Overview
 
