@@ -1,14 +1,14 @@
 # Documant RAG(Retrieval Augmented Generation) Project
 LLM(ChatGPT) + React + FastApi + ChromaDB + Redis + MongoDB
 
-![Alt text](server/upload/sample2.png)
+![Alt text](server/upload/sample05.png)
 
 # System Overview
 
 This document outlines the process flow within our system, from file upload to storing data in both Redis and MongoDB, and utilizing a language model to generate answers to user queries.
 
 ## Structure
-![Alt text](server/upload/sample05.png)
+![Alt text](server/upload/sample03.png)
 
 
 ## Process Flow
@@ -74,6 +74,7 @@ Mongo_DB_Database_Name=your_mongodb_database_name_here
 REDIS_ENDPOINT=your_redis_endpoint_here
 REDIS_PORT=your_redis_port_here
 REDIS_PASSWORD=your_redis_password_here
+```
 
 - python version : Python 3.10
 - install Library
