@@ -5,9 +5,9 @@ LLM(ChatGPT) + React + FastApi + ChromaDB + Redis + MongoDB
 
 # System Overview
 
-This document outlines the process flow within our system, from file upload to storing data in both Redis and MongoDB, and utilizing a language model to generate answers to user queries.
+The system facilitates the uploading of files, processes and stores data, utilizes a language model for generating answers, and ensures data persistence across multiple storage solutions.
 
-## Structure
+## Api Structure
 ![Alt text](server/upload/sample03.png)
 
 
