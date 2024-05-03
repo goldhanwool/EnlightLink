@@ -77,6 +77,7 @@ REDIS_PASSWORD=your_redis_password_here
 ```
 
 - python version : Python 3.10
+
 - install Library
 ```
  pip install -r requirements.txt
