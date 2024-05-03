@@ -4,7 +4,7 @@ RAG Chat Service는 NestJS와 GraphQL을 기반으로 하여 사용자의 질문
 
 LLM(ChatGPT) + React + NestJs + Graphql + RestfulAPI + PineCone + MongoDB + Matrial UI
 
-![Alt text](client/static/logic.png)
+![Alt text](sample.png)
 
 # Main Fuction
 
@@ -35,8 +35,8 @@ AWS_REGION=''
 
 ## Running
 
-node version > 18.13.0
-Firefox browser - localhost:3000
+- node version > 18.13.0
+- Firefox browser - localhost:3000
 
 - client, server Install
 ```
