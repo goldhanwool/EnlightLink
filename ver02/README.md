@@ -3,7 +3,7 @@ RAG Chat Service는 NestJS와 GraphQL을 기반으로 하여 사용자의 질문
 
 
 ![Alt text](client/static/logo.png)
-![Alt text](client/static/sample.png)
+![Alt text](client/static/sample1.png)
 
 # Main Fuction
 
