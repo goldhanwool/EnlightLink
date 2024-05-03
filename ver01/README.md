@@ -1,4 +1,4 @@
-# RAG(Retrieval Augmented Generation) Project
+# RAG(Retrieval Augmented Generation) Project ver01
 LLM(ChatGPT) + React + FastApi + ChromaDB + Redis + MongoDB
 
 ![Alt text](server/upload/sample05.png)
